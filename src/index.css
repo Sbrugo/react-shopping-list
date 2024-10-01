@@ -76,7 +76,6 @@ button:focus-visible {
 }
 
 .item {
-  width: 80%;
   display: flex;
   justify-content: space-around;
   background-color: gainsboro;
