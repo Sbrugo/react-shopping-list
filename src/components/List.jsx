@@ -3,15 +3,34 @@ import { CiCirclePlus } from "react-icons/ci";
 import { IoMdTrash } from "react-icons/io";
 import { MdSettingsBackupRestore } from "react-icons/md";
 import ListItem from "./ListItem";
+import { useEffect } from "react";
 
-const List = () => {
-  const [items, setItems] = useState([
-    { id: 1, name: "Item 1", price: 10.99, checked: false },
-    { id: 2, name: "Item 2", price: 5.99, checked: false },
-  ]);
+const List = () => {  
+  const API_URL = 'http://localhost:3500/items';
+  const [items, setItems] = useState([]);
   const [deletedItemList, setDeletedItemList] = useState([]);
   const [newItemName, setNewItemName] = useState("");
   const [newItemPrice, setNewItemPrice] = useState("");
+  const [fetchError, setFetchError] = useState(null);
+
+  useEffect(() => {
+
+    const fetchItems = async () => {
+      try{
+        const response = await fetch(API_URL);
+        if(!response.ok) throw Error('Did not receive expected data')
+        const listItems = await response.json();
+        setItems(listItems);
+        console.log(listItems);
+        setFetchError(null)
+      } catch (err){
+        console.log(err.stack); 
+        setFetchError(err.message)
+      }
+    }
+    (async () => await fetchItems())();
+  }, []);
+
 
   const handleCheck = (id) => {
     const listItems = items.map((item) =>
@@ -76,82 +95,66 @@ const List = () => {
   return (
     <>
       <h1>Shopping List</h1>
-      <section style={{ display: "flex", justifyContent: "space-around" }}>
-        <input
-          type="text"
-          onChange={handleNameChange}
-          value={newItemName}
-          placeholder="Add new item"
-        ></input>
-        <input
-          type="number"
-          onChange={handlePriceChange}
-          value={newItemPrice}
-          placeholder="Price"
-        />
-        <label
-          onClick={handleAddItem}
-          style={{ cursor: "pointer", display: "flex" }}
-        >
-          <CiCirclePlus className="icon" />
-          Add item
-        </label>
-      </section>
-      {items.length ? (
-        <ul>
-          {items.map((item) => (
-            <ListItem
-              key={item.id}
-              item={item}
-              handleAction={handleDelete}
-              handleCheck={handleCheck}
-              checkboxHidden={false}
-              icon={IoMdTrash}
-            />
-          ))}
-        </ul>
-      ) : (
-        <p>The list is empty</p>
-      )}
-      {deletedItemList.length > 0 ? (
-        <>
-          <p>Deleted items</p>
+      {fetchError && <p style={{color:'red'}}>`Error ${fetchError}`</p>}
+      {!fetchError && 
+      <>
+        <section style={{ display: "flex", justifyContent: "space-around" }}>
+          <input
+            type="text"
+            onChange={handleNameChange}
+            value={newItemName}
+            placeholder="Add new item"
+          ></input>
+          <input
+            type="number"
+            onChange={handlePriceChange}
+            value={newItemPrice}
+            placeholder="Price"
+          />
+          <label
+            onClick={handleAddItem}
+            style={{ cursor: "pointer", display: "flex" }}
+          >
+            <CiCirclePlus className="icon" />
+            Add item
+          </label>
+        </section>
+        {items.length ? (
           <ul>
-            {deletedItemList.map((item) => (
+            {items.map((item) => (
               <ListItem
                 key={item.id}
                 item={item}
-                handleAction={handleRestore}
+                handleAction={handleDelete}
                 handleCheck={handleCheck}
-                icon={MdSettingsBackupRestore}
+                checkboxHidden={false}
+                icon={IoMdTrash}
               />
             ))}
           </ul>
-        </>
-      ) : (
-        // <section>
-        //   <p>Deleted items</p>
-        //   <ul className="list">
-        //     {deletedItemList.map((item) => (
-        //       <li className="item" key={item.id}>
-        //         <label>{item.name}</label>
-        //         <input
-        //           type="checkbox"
-        //           checked={item.checked}
-        //           onChange={() => handleCheck(item.id)}
-        //           style={{ visibility: "hidden" }}
-        //         ></input>
-        //         <MdSettingsBackupRestore
-        //           className="icon"
-        //           role="button"
-        //           onClick={() => handleRestore(item.id)}
-        //         />
-        //       </li>
-        //     ))}
-        //   </ul>
-        // </section>
-        <p>There aren´t deleted items</p>
-      )}
+        ) : (
+          <p>The list is empty</p>
+        )}
+        {deletedItemList.length > 0 ? (
+          <>
+            <p>Deleted items</p>
+            <ul>
+              {deletedItemList.map((item) => (
+                <ListItem
+                  key={item.id}
+                  item={item}
+                  handleAction={handleRestore}
+                  handleCheck={handleCheck}
+                  icon={MdSettingsBackupRestore}
+                />
+              ))}
+            </ul>
+          </>
+        ) : (
+          <p>There aren´t deleted items</p>
+        )}
+      </>
+      }
     </>
   );
 };
