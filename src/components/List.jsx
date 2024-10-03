@@ -12,6 +12,7 @@ const List = () => {
   const [newItemName, setNewItemName] = useState("");
   const [newItemPrice, setNewItemPrice] = useState("");
   const [fetchError, setFetchError] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
 
@@ -26,9 +27,13 @@ const List = () => {
       } catch (err){
         console.log(err.stack); 
         setFetchError(err.message)
+      }finally{
+        setIsLoading(false);
       }
     }
-    (async () => await fetchItems())();
+    setTimeout(() => {
+      (async () => await fetchItems())();
+    }, 2000)
   }, []);
 
 
@@ -95,8 +100,9 @@ const List = () => {
   return (
     <>
       <h1>Shopping List</h1>
+      {isLoading && <p>Loading Items...</p>}
       {fetchError && <p style={{color:'red'}}>`Error ${fetchError}`</p>}
-      {!fetchError && 
+      {!fetchError && !isLoading &&
       <>
         <section style={{ display: "flex", justifyContent: "space-around" }}>
           <input
